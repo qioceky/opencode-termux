@@ -339,7 +339,8 @@ The Bun team [closed Android support as "not planned"](https://github.com/oven-s
 | Android NDK | r28b (28.1.13356709) | Clang 19, stable |
 | Android API level | 24 (Android 7.0+) | Minimum for 64-bit Termux |
 | Zig (for opentui) | 0.15.2 | Latest stable, Android target support |
-| OpenCode | 1.3.13 | Current release |
+| opentui (native lib) | v0.4.3 | Matches `@opentui/core@0.4.3` bundled by OpenCode v1.18.3 |
+| OpenCode | 1.18.3 | Current release |
 | TinyCC | `b91835d8` (oven-sh/tinycc) | Matches Bun v1.2.13's expected TinyCC |
 
 ---
