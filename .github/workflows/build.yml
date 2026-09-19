@@ -31,7 +31,7 @@ jobs:
   build:
     name: Build Android aarch64
     runs-on: self-hosted
-    timeout-minutes: 360  # 6 hours for full build
+    timeout-minutes: 720  # 12 hours for full build on 2-core runner
 
     steps:
       - name: Checkout repository
