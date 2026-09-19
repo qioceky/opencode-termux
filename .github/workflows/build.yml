@@ -23,8 +23,9 @@ env:
   # Memory-safe parallelism default; override with repo secret if your
   # runner has more (golem10 used JOBS=4 on 15GB RAM).
   JOBS: "2"
-  # Generic default; can be overridden by setting WORK_DIR as a repo variable.
-  WORK_DIR: "$HOME/opencode-build"
+  # Generic default. GitHub does NOT expand $HOME inside env values,
+  # so use an absolute, writable path (override per repo if needed).
+  WORK_DIR: "/tmp/opencode-build"
 
 jobs:
   build:
