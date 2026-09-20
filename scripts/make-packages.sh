@@ -99,8 +99,11 @@ EOF
 
 DEB_NAME="opencode_${OPENCODE_VERSION}_aarch64.deb"
 
-# Build deb manually (dpkg-deb may not be available)
-cd "$DEB_STAGING/data"
+# Build deb manually (dpkg-deb may not be available).
+# The tar must contain "data/data/com.termux/..." (2x data) so dpkg extracts
+# to /data/data/com.termux/files/usr/bin/opencode. Run tar from the staging
+# ROOT so the leading "data" component is preserved.
+cd "$DEB_STAGING"
 tar czf "$DEB_STAGING/data.tar.gz" data
 cd "$DEB_STAGING/DEBIAN"
 tar czf "$DEB_STAGING/control.tar.gz" control

@@ -33,17 +33,27 @@ opencode
 
 ```bash
 curl -LO https://github.com/qioceky/opencode-termux/releases/latest/download/opencode-1.18.31-1-aarch64.pkg.tar.xz
-pacman -U opencode-*-aarch64.pkg.tar.xz
+pacman -U opencode-1.18.31-1-aarch64.pkg.tar.xz
 opencode
 ```
+
+> If pacman complains about a missing/writable keyring, initialize it first:
+> ```bash
+> pacman-key --init
+> pacman-key --populate
+> ```
 
 ### Option 3: Deb package
 
 ```bash
 curl -LO https://github.com/qioceky/opencode-termux/releases/latest/download/opencode_1.18.31_aarch64.deb
-dpkg -i opencode_*_aarch64.deb
+pkg install ./opencode_1.18.31_aarch64.deb
 opencode
 ```
+
+> Use the exact filename — do NOT glob (`opencode_*_aarch64.deb`): if an older
+> OpenCode `.deb` is still in your working directory, pkg/dpkg will try to install
+> both and the unpack can fail. Delete old `.deb` files first if you have any.
 
 The pacman and deb packages automatically install `ripgrep` as a dependency.
 
