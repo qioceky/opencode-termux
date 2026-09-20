@@ -35,7 +35,7 @@ opencode
 ### Option 2: Pacman package (recommended if using pacman)
 
 ```bash
-curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode-1.18.3-1-aarch64.pkg.tar.xz
+curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode-1.18.31-1-aarch64.pkg.tar.xz
 pacman -U opencode-*-aarch64.pkg.tar.xz
 opencode
 ```
@@ -43,7 +43,7 @@ opencode
 ### Option 3: Deb package
 
 ```bash
-curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode_1.18.3_aarch64.deb
+curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode_1.18.31_aarch64.deb
 dpkg -i opencode_*_aarch64.deb
 opencode
 ```
@@ -339,8 +339,8 @@ The Bun team [closed Android support as "not planned"](https://github.com/oven-s
 | Android NDK | r28b (28.1.13356709) | Clang 19, stable |
 | Android API level | 24 (Android 7.0+) | Minimum for 64-bit Termux |
 | Zig (for opentui) | 0.15.2 | Latest stable, Android target support |
-| opentui (native lib) | v0.4.3 | Matches `@opentui/core@0.4.3` bundled by OpenCode v1.18.3 |
-| OpenCode | 1.18.3 | Current release |
+| opentui (native lib) | v0.4.5 | Matches `@opentui/core@0.4.5` bundled by OpenCode v1.18.31 |
+| OpenCode | 1.18.31 | Current release |
 | TinyCC | `b91835d8` (oven-sh/tinycc) | Matches Bun v1.2.13's expected TinyCC |
 
 ---
