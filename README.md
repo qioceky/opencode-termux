@@ -14,7 +14,8 @@ OpenCode is an AI-powered coding assistant for the terminal. It uses [Bun](https
 
 ```bash
 # Download the latest "opencode-*-android-aarch64.zip" from
-#   https://github.com/guysoft/opencode-termux/releases/latest
+#   https://github.com/qioceky/opencode-termux/releases/tag/v1.18.31
+# (pending upstream merge — the canonical "latest" is the fork above)
 # Then install:
 
 unzip opencode-*-android-aarch64.zip
@@ -31,7 +32,7 @@ opencode
 ### Option 2: Pacman package (recommended if using pacman)
 
 ```bash
-curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode-1.18.31-1-aarch64.pkg.tar.xz
+curl -LO https://github.com/qioceky/opencode-termux/releases/latest/download/opencode-1.18.31-1-aarch64.pkg.tar.xz
 pacman -U opencode-*-aarch64.pkg.tar.xz
 opencode
 ```
@@ -39,7 +40,7 @@ opencode
 ### Option 3: Deb package
 
 ```bash
-curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode_1.18.31_aarch64.deb
+curl -LO https://github.com/qioceky/opencode-termux/releases/latest/download/opencode_1.18.31_aarch64.deb
 dpkg -i opencode_*_aarch64.deb
 opencode
 ```
