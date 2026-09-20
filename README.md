@@ -8,22 +8,18 @@ OpenCode is an AI-powered coding assistant for the terminal. It uses [Bun](https
 
 ### Option 1: Standalone binary (easiest)
 
-> **Note:** The zip now contains a wrapper script (`opencode`), the main binary
-> (`opencode.bin`), and native libraries (`.so` files). All files must be
-> installed to their proper locations.
+> **Note:** The zip contains a single self-contained `opencode` binary (~200MB).
+> All native libraries (`libopentui.so`, etc.) are embedded, so no extra files
+> need to be installed.
 
 ```bash
 # Download the latest "opencode-*-android-aarch64.zip" from
 #   https://github.com/guysoft/opencode-termux/releases/latest
 # Then install:
 
-mkdir -p $PREFIX/libexec/opencode $PREFIX/lib
 unzip opencode-*-android-aarch64.zip
 mv opencode $PREFIX/bin/opencode
 chmod +x $PREFIX/bin/opencode
-mv opencode.bin $PREFIX/libexec/opencode/opencode.bin
-chmod +x $PREFIX/libexec/opencode/opencode.bin
-mv libtagfix.so libc++_shared.so libopentui.so $PREFIX/lib/
 
 # Install required dependency
 pkg install ripgrep
@@ -209,7 +205,7 @@ Bun has zero Android support. Every patch falls into one of these categories:
 
 Since `bun build --compile` has no Android cross-compilation target, we use a manual approach:
 
-1. Use **host Bun (v1.3.2)** to `bun build --compile` OpenCode for the host platform
+1. Use **host Bun (v1.3.2)** to `bun build --compile` OpenCode for the host platform. Before bundling, run `bun install --os="*" --cpu="*" @opentui/core@...` (versions parsed from `bun.lock`) so every platform's optional-dependency variant is present — otherwise bundling fails to resolve e.g. `@opentui/core-win32-arm64`
 2. Extract the serialized **module graph** from the host standalone binary by locating the `\n---- Bun! ----\n` trailer and reading the `Offsets` struct
 3. Patch the module graph in-place (fix `undici` global reference)
 4. Before bundling, swap x86_64 `libopentui.so` with the ARM64 Android-built version, so it gets embedded in the module graph
@@ -218,8 +214,8 @@ Since `bun build --compile` has no Android cross-compilation target, we use a ma
 
 The standalone binary format:
 ```
-[Android Bun binary (~96 MB)]
-[Module graph bytes (~46 MB)]
+[Android Bun binary (~93 MB)]
+[Module graph bytes (~104 MB)]
 [total_byte_count as u64 LE (8 bytes)]
 ```
 
@@ -247,7 +243,7 @@ We can't use Bun 1.2.13 as host either, because OpenCode's monorepo uses `catalo
 
 | Issue | Severity | Details |
 |-------|----------|---------|
-| File watcher native module | Low | `@parcel/watcher` `.node` binding is compiled for x86_64. Falls back gracefully to polling. Logs: `dlopen failed: "...00000001.node" is for EM_X86_64 (62) instead of EM_AARCH64 (183)` |
+| `@parcel/watcher` file watcher | None | Declared dependency but not imported by OpenCode's source. The build installs all platform variants (including `linux-arm64`) so nothing depends on the x86_64 prebuilt. |
 | `bun upgrade` | Low | Disabled on Android -- no Android release channel exists upstream |
 | TinyCC FFI compilation | Low | `libtcc.a` is linked but TCC's runtime code generation may not produce valid ARM64 code. FFI is not commonly used by OpenCode. |
 | SIGPWR signals | None | Many SIGPWR signals appear in strace -- related to Android's power management or Bun's signal handling. Not errors. |
