@@ -73,9 +73,10 @@ opencode-termux/
     bun/android-support.patch      # 33 files, Bun Android/aarch64 support
     webkit/android-support.patch   # 5 files, WebKit/JSC Android fixes
     zig/posix-android-sigaction.patch  # Zig stdlib sigaction/sigprocmask fix
-    opentui/android-libc-link.patch  # Link NDK libc.so for Android dlopen
+    opentui/android-libc-link.patch  # Android build: skip dl/pthread, link NDK libc.so + setLibCFile
   scripts/
     apply-patches.sh               # Clone upstream repos + apply patches
+    env.sh                         # Version pins (OpenCode, opentui, Bun, etc.)
     build-icu.sh                   # Cross-compile ICU 75.1 for Android
     build-webkit.sh                # Cross-compile WebKit/JSC for Android
     build-tinycc.sh                # Cross-compile TinyCC (libtcc.a) for Android
@@ -102,7 +103,7 @@ This project got OpenCode (a ~195MB standalone binary built on Bun + WebKit/JSC)
 
 3. **Fixing Zig's stdlib for Android/Bionic** -- Zig's `sigaction()` and `sigprocmask()` pass a 152-byte struct through Bionic's libc which expects 32 bytes, causing silent memory corruption. Patched to use raw syscalls on Android.
 
-4. **Building libopentui.so for Android** -- OpenCode's TUI renderer depends on OpenTUI, which needed a patch to link Android NDK's libc.so stub so `dlopen()` can resolve symbols at runtime.
+4. **Building libopentui.so for Android** -- OpenCode's TUI renderer depends on OpenTUI, which needed a patch to (a) skip linking `dl`/`pthread` (already inside Bionic on Android), (b) link the Android NDK's `libc.so` stub so `dlopen()` can resolve symbols at runtime, and (c) provision a libc via `setLibCFile()` so Zig can compile for the Android target (Zig only bundles glibc/musl).
 
 5. **Standalone binary surgery** -- Since `bun build --compile` has no Android cross-compilation target, we build a host standalone binary, extract the serialized module graph, and transplant it onto the Android Bun binary. This required understanding and matching the binary format across Bun versions (36-byte vs 52-byte module struct stride).
 
@@ -197,7 +198,10 @@ Bun has zero Android support. Every patch falls into one of these categories:
 
 ### OpenTUI Patch (1 file)
 
-- **Link NDK `libc.so` stub** -- On Android, the `.so` must have `NEEDED: libc.so` in its ELF headers so `dlopen()` can resolve symbols like `getauxval`. Zig doesn't bundle Android libc, so we directly add the NDK sysroot's `libc.so` stub as a link input.
+- **Android `build.zig` support** -- three changes to compile `libopentui.so` for `aarch64-linux-android`:
+  1. **Skip `dl`/`pthread`** -- Zig's `addNativeAudioDependencies` unconditionally links `dl` + `pthread` on `.linux`; on Android those live inside Bionic's libc, so the link fails ("unable to find dynamic system library 'dl'"). Guarded with `if (!is_android)`.
+  2. **Link NDK `libc.so` stub** -- the `.so` must carry `NEEDED: libc.so` in its ELF headers so `dlopen()` can resolve symbols like `getauxval`. We `addObjectFile()` the NDK sysroot's `libc.so` stub.
+  3. **Provision libc via `setLibCFile()`** -- Zig bundles only glibc/musl, so compiling for Android fails with "unable to provide libc for target". We write a libc file pointing at the NDK sysroot (include dirs + crt dir, read from `ANDROID_NDK_HOME` / `ANDROID_NDK_LIB_DIR` env) and feed it to the compile step.
 
 ---
 
@@ -366,10 +370,28 @@ The Bun team [closed Android support as "not planned"](https://github.com/oven-s
 
 ---
 
+## Building and Releasing (CI)
+
+The `.github/workflows/build.yml` workflow has two triggers:
+
+1. **Manual dispatch** (`workflow_dispatch`) -- "Run workflow" button → input `opencode_version` (e.g. `1.18.31`). Builds and uploads packages as a run artifact, but **does not** create a GitHub Release.
+
+2. **Tag push** (`on: push: tags: ['v*']`) -- pushing `git tag v<version>` to the repo triggers a full build AND auto-creates a GitHub Release with the three packages (`.zip`, `.pkg.tar.xz`, `.deb`) attached.
+
+- The workflow is designed for a **self-hosted runner** (`golem10`): `WORK_DIR`, `JOBS`, and the 12-hour timeout are configurable. GitHub-hosted runners are too small/slow for the Bun + WebKit builds.
+- Repo must have **workflow permissions = Read and write** (Settings → Actions → General) or the release step fails with `Resource not accessible by integration`.
+- Upgrading OpenCode = update `OPENCODE_VERSION` / `OPENTUI_VERSION` in `scripts/env.sh` (mirror the pins in `.github/workflows/build.yml` and the fallback in `scripts/build-opencode-android.ts`), then `git tag v<version> && git push --tags`.
+
+---
+
 ## Tested On
 
-- Samsung Galaxy S10e (Android 12, Termux, aarch64) -- full TUI confirmed working
+- Samsung Galaxy S10e (Android 12, Termux, aarch64) -- full TUI confirmed working (verified on an earlier OpenCode release)
 - Meta Quest 2 (Android 12L, adb shell)
+
+> **Note:** The v1.18.31 build is compiled and its bundle pipeline is verified, but it has not been
+> installed/run on an actual Android device yet. If anything misbehaves in the TUI, models list, or
+> startup, please open an issue.
 
 ---
 
