@@ -35,7 +35,7 @@ opencode
 ### Option 2: Pacman package (recommended if using pacman)
 
 ```bash
-curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode-aarch64.pkg.tar.xz
+curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode-1.18.3-1-aarch64.pkg.tar.xz
 pacman -U opencode-*-aarch64.pkg.tar.xz
 opencode
 ```
@@ -43,8 +43,8 @@ opencode
 ### Option 3: Deb package
 
 ```bash
-curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode-aarch64.deb
-dpkg -i opencode-*-aarch64.deb
+curl -LO https://github.com/guysoft/opencode-termux/releases/latest/download/opencode_1.18.3_aarch64.deb
+dpkg -i opencode_*_aarch64.deb
 opencode
 ```
 
@@ -98,7 +98,7 @@ opencode-termux/
 
 ## What Was Done
 
-This project got OpenCode (a ~136MB standalone binary built on Bun + WebKit/JSC) running on Android/Termux, which required:
+This project got OpenCode (a ~195MB standalone binary built on Bun + WebKit/JSC) running on Android/Termux, which required:
 
 1. **Cross-compiling Bun v1.2.13 for Android/aarch64** -- Bun has zero Android support. We patched 33 files across the build system (CMake, Zig), syscall layer, Bionic libc compatibility, JSC/JIT configuration, and linker settings.
 
@@ -118,15 +118,15 @@ This project got OpenCode (a ~136MB standalone binary built on Bun + WebKit/JSC)
 
 ```
 Stage 1: ICU 75.1          ~5 min    (cross-compile for Android)
-Stage 2: WebKit/JSC        ~60-90 min (cross-compile, CACHED)
+Stage 2: WebKit/JSC        ~30-60 min (cross-compile, CACHED)
 Stage 3: TinyCC            ~1 min    (cross-compile libtcc.a)
 Stage 4: Bun binary        ~30-45 min (CMake + Ninja, CACHED)
-Stage 5: libopentui.so     ~2 min    (Zig build for aarch64-linux-android)
+Stage 5: libopentui.so     ~1 min    (Zig build for aarch64-linux-android)
 Stage 6: OpenCode bundle   ~30 sec   (bun build --compile, extract module graph)
 Stage 7: Packages          ~10 sec   (zip + pacman + deb)
 ```
 
-With warm caches (WebKit + Bun cached), CI runs complete in ~4 minutes.
+The GitHub Actions workflow runs these stages in one job. A full run on a 2-core/8GB runner with a swap file takes roughly an hour end-to-end; CI caches (ICU, WebKit, Bun) are restored via `actions/cache` when the build inputs are unchanged.
 
 ---
 
@@ -348,9 +348,10 @@ The Bun team [closed Android support as "not planned"](https://github.com/oven-s
 ## Build Requirements
 
 - **Build host**: x86_64 Linux (Ubuntu 22.04+)
-- **RAM**: 16GB minimum (30GB recommended for WebKit link step)
+- **RAM**: 8GB minimum with an 8GB+ swap file (16GB recommended for faster link steps)
 - **Disk**: 60GB+ free space
-- **CPU**: 8+ cores recommended (4 cores works but slow)
+- **CPU**: 2+ cores (8+ cores recommended; more is faster)
+- The tested configuration: 2-core / 8GB RAM / 8GB swap, `JOBS=2` in the workflow.
 
 ### Required tools
 
