@@ -33,6 +33,12 @@ fi
 
 OPENCODE_PKG="$OPENCODE_SRC/packages/opencode"
 
+# Patch: Android bun bundles ignoring TMPDIR/TMP/TEMP env (os.tmpdir() always
+# returns /tmp, which is not writable on Termux). Put tmp under the xdg state
+# dir (state is created and writable), with OPENCODE_TMP env override.
+sed -i 's|const tmp = path.join(os.tmpdir(), app)|const tmp = process.env.OPENCODE_TMP ?? path.join(xdgState!, app, "tmp")|' \
+    "$OPENCODE_SRC/packages/core/src/global.ts"
+
 # Install OpenCode dependencies
 echo ">>> Installing OpenCode dependencies..."
 cd "$OPENCODE_SRC"
